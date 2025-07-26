@@ -55,6 +55,9 @@ jobs:
               --name node-todo-app \
               --restart unless-stopped \
               -p 4000:4000 \
+              -e mongoDbUrl="${{ secrets.mongoDbUrl }}" \
+              -e PORT=4000 \
+              -e NODE_ENV=production \
               ${{ env.IMAGE_NAME }}:latest
 
             # Clean up unused images
