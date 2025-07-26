@@ -27,3 +27,32 @@ jobs:
         run: |
           docker build -t ${{ env.IMAGE_NAME }} .
           docker push ${{ env.IMAGE_NAME }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH into droplet, pull and run container
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DROPLET_SSH_HOST }}
+          username: ${{ secrets.DROPLET_SSH_USERNAME }}
+          key: ${{ secrets.DROPLET_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.DROPLET_SSH_PORT }}
+          script: |
+            docker pull ${{ env.IMAGE_NAME }}:latest
+
+            docker stop node-todo-app || true
+            docker rm node-todo-app || true
+
+            docker run -d \
+              --name node-todo-app \
+              --restart unless-stopped \
+              -p 4000:4000 \
+            #   -e mongoDbUrl="${{ secrets.MONGO_DB_URL }}" \
+            #   -e PORT=4000 \
+            #   -e NODE_ENV=production \
+              ${{ env.IMAGE_NAME }}:latest
+
+            # Clean up unused images
+            docker image prune -f
