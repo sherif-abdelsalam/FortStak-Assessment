@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      target: production
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - mongoDbUrl=${mongoDbUrl:-mongodb://mongo:27017/todolistDb}
+    depends_on:
+      - mongo
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  app-dev:
+    build:
+      context: .
+      target: development
+    ports:
+      - "4001:4000"
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      - mongoDbUrl=${mongoDbUrl:-mongodb://mongo:27017/todolistDb}
+    depends_on:
+      - mongo
+    volumes:
+      - .:/app
+      - /app/node_modules
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  mongo:
+    image: mongo:6.0
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=todolistDb
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+
+volumes:
+  mongo-data:
+
+networks:
+  app-network:
+    driver: bridge
