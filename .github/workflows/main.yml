@@ -40,11 +40,17 @@ jobs:
           key: ${{ secrets.DROPLET_SSH_PRIVATE_KEY }}
           port: ${{ secrets.DROPLET_SSH_PORT }}
           script: |
+            # Login to Docker Hub
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+            # Pull the latest image
             docker pull ${{ env.IMAGE_NAME }}:latest
 
+            # Stop and remove existing container
             docker stop node-todo-app || true
             docker rm node-todo-app || true
 
+            # Run new container
             docker run -d \
               --name node-todo-app \
               --restart unless-stopped \
@@ -56,3 +62,6 @@ jobs:
 
             # Clean up unused images
             docker image prune -f
+
+            # Logout from Docker Hub for security
+            docker logout
