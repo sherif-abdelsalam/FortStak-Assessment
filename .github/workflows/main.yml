@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+      - master
+
 env:
   IMAGE_NAME: sherifabdelsalam111/node-todo-app
 
